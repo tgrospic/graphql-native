@@ -1,10 +1,34 @@
 # GraphQL native
 
+## Install nodejs
+
+`nvm` je tool za instalaciju i update nodejs-a (zajedno sa `npm`-om)
+
+### Linux verzija
+
+https://github.com/creationix/nvm#installation-and-update
+
+### Windows verzija
+
+https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows
+
+### nvm
+
+```sh
+# linux - install zadnje verzije nodejs-a
+nvm install stable
+
+# windows - install zadnje verzije (mora bit navedena)
+nvm install 11
+```
+
 ## Start GraphQL server
 
-```bash
+```sh
+# download dependencies
 npm install
 
+# start server
 npm start
 ```
 
