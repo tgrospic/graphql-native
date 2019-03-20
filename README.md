@@ -20,6 +20,7 @@ nvm install stable
 
 # windows - install zadnje verzije (mora bit navedena)
 nvm install 11
+nvm use 11
 ```
 
 ## Start GraphQL server
