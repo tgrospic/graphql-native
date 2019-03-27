@@ -1,4 +1,5 @@
 import R from 'ramda'
+import * as Item from './item'
 import * as User from './user'
 import * as Order from './order'
 
@@ -6,6 +7,7 @@ export * from './field'
 
 // Entity names
 export const ENTITY = {
+  ITEM:         'item',
   USER:         'user',
   ORDER:        'order',
   ORDER_ITEM:   'orderItem',
@@ -35,6 +37,7 @@ const createEntity = (entity, fieldsDefObj) => {
 }
 
 const allFields = [
+  createEntity(ENTITY.ITEM,         Item.fields),
   createEntity(ENTITY.USER,         User.fields),
   createEntity(ENTITY.ORDER,        Order.fields),
   createEntity(ENTITY.ORDER_ITEM,   Order.itemFields),

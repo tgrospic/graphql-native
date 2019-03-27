@@ -1,5 +1,5 @@
-import { GraphQLObjectType, GraphQLInt, GraphQLString, GraphQLList, GraphQLScalarType } from 'graphql'
-import { userType, orderType, orderItemType, orderStatusType } from './types'
+import { GraphQLInt, GraphQLString, GraphQLList } from 'graphql'
+import { gqlType, userType, orderType, orderItemType, orderStatusType, itemType } from './types'
 import { resolveQuery } from './resolver'
 import { GraphQLAny } from './helpers'
 import config from '../config'
@@ -14,10 +14,17 @@ const queryArgs = {
   orderBy: { type: new GraphQLList(new GraphQLList(GraphQLString)) },
 }
 
-export default new GraphQLObjectType({
-  name: 'RootQueryType',
+export default gqlType({
+  name: 'rootQuery',
   description: 'GraphQL root type',
   fields: {
+    items: {
+      type: new GraphQLList(itemType),
+      description: 'item collection',
+      args: queryArgs,
+      resolve: resolveQuery,
+    },
+
     users: {
       type: new GraphQLList(userType),
       description: 'user collection',

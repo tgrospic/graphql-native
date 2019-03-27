@@ -39,6 +39,11 @@ const fkNotNull = {
   onDelete: 'CASCADE',
 }
 
+const fkNull = {
+  foreignKey: { allowNull: true },
+  onDelete: 'CASCADE',
+}
+
 // Create Sequelize schema instance (singleton)
 const sequelize = new Sequelize(null, null, null, config.db)
 
@@ -55,10 +60,15 @@ const entityMap = R.clone(EntitySchema)
 const defineEntity = entity => sequelize.define(entity, sequelizeProps(entityMap[entity]))
 
 // Entities
+const Item        = defineEntity(ENTITY.ITEM)
 const User        = defineEntity(ENTITY.USER)
 const Order       = defineEntity(ENTITY.ORDER)
 const OrderItem   = defineEntity(ENTITY.ORDER_ITEM)
 const OrderStatus = defineEntity(ENTITY.ORDER_STATUS)
+
+// Item relations
+Item.hasMany(Item, { as: 'items', ...fkNull })
+Item.belongsTo(Item, { as: 'item' })
 
 // User relations
 User.hasMany(Order, { as: 'orders', ...fkNotNull })

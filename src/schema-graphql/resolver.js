@@ -62,9 +62,11 @@ const emptyToNull = obj => {
 // Read resolver
 
 export async function resolveQuery(rootValue, {where, limit, skip, orderBy}, context, field) {
-  const schemaRoot = field.schema._typeMap.RootQueryType
+  const schemaRoot = field.schema._typeMap.rootQuery
   const rootField  = field.fieldNodes[0]
   const queryModel = selectionToInclude(schemaRoot)(rootField)
+
+  logger.debug('QUERY', JSON.stringify(queryModel, null, 2))
 
   // Sequelize (SQL) SELECT query
   return await queryModel.model.findAll({

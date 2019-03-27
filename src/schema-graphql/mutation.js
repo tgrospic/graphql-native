@@ -1,5 +1,5 @@
-import { GraphQLObjectType, GraphQLInt, GraphQLList, GraphQLScalarType, GraphQLString, GraphQLBoolean } from 'graphql'
-import { userType, orderType, orderItemType, orderStatusType } from './types'
+import { GraphQLInt, GraphQLString, GraphQLNonNull } from 'graphql'
+import { gqlType, gqlTypeInput, userType, userInputType, orderType, orderItemType, orderStatusType, itemType, itemInputType } from './types'
 import { createMutation, updateMutation, deleteMutation } from './resolver'
 import { GraphQLAny } from './helpers'
 import { ENTITY } from '../schema'
@@ -9,11 +9,9 @@ const typeAny = {
   type: GraphQLAny,
 }
 
-const createEntityMutation = (gqlType, entity, options) => ({
-  type: gqlType,
-  args: {
-    value: typeAny
-  },
+const createEntityMutation = (type, inputType, entity, options) => ({
+  type,
+  args: { value: { type: inputType } },
   resolve: createMutation(entity, options),
 })
 
@@ -34,14 +32,43 @@ const deleteEntityMutation = (gqlType, entity, options) => ({
   resolve: deleteMutation(entity, options),
 })
 
-export default new GraphQLObjectType({
-  name: 'RootMutationType',
+export default gqlType({
+  name: 'rootMutation',
   fields: {
+    // Sample mutation method
+    mutationSample: {
+      // Function parameters
+      args: {
+        // sampleInputType
+        inputNumber: { type: new GraphQLNonNull(GraphQLInt) },
+        inputString: { type: GraphQLString },
+      },
+      // Function return type
+      type: gqlType({
+        name:  `sampleReturnType`,
+        fields: () => ({
+          returnNumber: { type: GraphQLInt },
+          returnString: { type: GraphQLString },
+        }),
+      }),
+      // mutationSample : sampleInputType -> sampleReturnType
+      resolve: (root, {inputNumber, inputString}) => {
+        logger.debug(`mutationSample.resolve: `, {inputNumber, inputString})
+        return {
+          returnNumber: inputNumber + 100,
+          returnString: `Echo -> ${inputString}!`
+        }
+      },
+    },
+
+    // Create item
+    createItem: createEntityMutation(itemType, itemInputType, ENTITY.ITEM, { include: 'items' }),
+
     // create
-    createUser: createEntityMutation(userType, ENTITY.USER, { include: 'orders' }),
-    createOrder: createEntityMutation(orderType, ENTITY.ORDER, { include: ['user', 'orderItems', 'statuses'] }),
-    createOrderItem: createEntityMutation(orderItemType, ENTITY.ORDER_ITEM, { include: 'order' }),
-    createOrderStatus: createEntityMutation(orderStatusType, ENTITY.ORDER_STATUS, { include: 'order' }),
+    createUser: createEntityMutation(userType, userInputType, ENTITY.USER, { include: 'orders' }),
+    createOrder: createEntityMutation(orderType, GraphQLAny, ENTITY.ORDER, { include: ['user', 'orderItems', 'statuses'] }),
+    createOrderItem: createEntityMutation(orderItemType, GraphQLAny, ENTITY.ORDER_ITEM, { include: 'order' }),
+    createOrderStatus: createEntityMutation(orderStatusType, GraphQLAny, ENTITY.ORDER_STATUS, { include: 'order' }),
     // update
     updateUser: updateEntityMutation(GraphQLInt, ENTITY.USER),
     updateOrder: updateEntityMutation(GraphQLInt, ENTITY.ORDER),
