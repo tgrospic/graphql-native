@@ -21,7 +21,7 @@ query {
 }
 ```
 
-Ovo je query prebačen u JSON preko [selectionToInclude](./resolver.js#L11) funkcije koja koristi query AST iz [resolveQuery](./resolver.js#L64) field argumenta.
+Ovo je query prebačen u JSON preko [selectionToInclude](./resolver.js#resolver.js-11) funkcije koja koristi query AST iz [resolveQuery](./resolver.js#resolver.js-64) field argumenta.
 
 ```json
 {
