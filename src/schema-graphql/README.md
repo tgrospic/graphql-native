@@ -1,81 +1,47 @@
-# GraphQL schema
+# GraphQL
 
-## `resolver : query_AST -> response_JSON`
-
-- GraphQL parsira query i pretvara u _query_AST_ (_field_ argument u resolver funkciji)
-
-Primjer query
-
-```graphql
-query {
-  items {
-    id
-    itemId
-    valString
-    items {
-      id
-      itemId
-      info
-    }
-  }
-}
-```
-
-Ovo je query prebačen u JSON preko [selectionToInclude](./resolver.js#resolver.js-11) funkcije koja koristi query AST iz [resolveQuery](./resolver.js#resolver.js-64) field argumenta.
-
-```json
-{
-  "name": "items",
-  "as": "items",
-  "attributes": [
-    "id",
-    "itemId",
-    "valString"
-  ],
-  "include": [
-    {
-      "name": "items",
-      "as": "items",
-      "attributes": [
-        "id",
-        "itemId",
-        "info"
-      ],
-      "include": []
-    }
-  ]
-}
-```
+Više o [GraphQL schemi](./graphql.md).
 
 ## Primjer kreiranja scheme u _item_ tablici
 
-Ovdje su 3 querija/mutacije ali može se okinut samo jedan po jedan. Na `CTRL+ENTER` gdje je kursor ili preko ▶ u headeru.
-
-[http://localhost:9876/graphql?query=items(...)](http://localhost:9876/graphql?query=mutation%20CreateRoot%20%7B%0A%20%20createItem(value%3A%20%7B%0A%20%20%20%20itype%3A%20%22ROOT%22%0A%20%20%20%20info%3A%20%22Root%20node%22%0A%20%20%7D)%20%7B%0A%20%20%20%20id%0A%20%20%7D%0A%7D%0A%0Amutation%20CreateChilds%20%7B%0A%20%20createItem(value%3A%20%7B%0A%20%20%20%20itemId%3A%201%0A%20%20%20%20itype%3A%20%22ENTITY%22%0A%20%20%20%20valString%3A%20%22user%22%0A%20%20%20%20info%3A%20%22user%20collection%22%0A%20%20%20%20items%3A%20%5B%7B%0A%20%20%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20%20%20valString%3A%20%22firstName%22%0A%20%20%20%20%20%20info%3A%20%22user%20first%20name%22%0A%20%20%20%20%7D%2C%20%7B%0A%20%20%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20%20%20valString%3A%20%22lastName%22%0A%20%20%20%20%20%20info%3A%20%22user%20last%20name%22%0A%20%20%20%20%7D%2C%20%7B%0A%20%20%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20%20%20valString%3A%20%22email%22%0A%20%20%20%20%20%20info%3A%20%22user%20email%22%0A%20%20%20%20%7D%5D%0A%20%20%20%20%23...%20itd.%20phone%2C%20address%2C%20note%2C%20color%0A%20%20%7D)%20%7B%0A%20%20%20%20id%0A%20%20%7D%0A%7D%0A%0Aquery%20Items%20%7B%0A%20%20items%20%7B%0A%20%20%20%20id%0A%20%20%20%20itemId%0A%20%20%20%20itype%0A%20%20%20%20valString%0A%20%20%20%20info%0A%20%20%20%20items%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%20%20itype%0A%20%20%20%20%20%20valString%0A%20%20%20%20%20%20info%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D&operationName=Items)
-
 `itype` je kao labela ili tag i određuje šta taj redak predstavlja. Za neki bazni tip kao što je _string_ ili _int_ to je zapravo tip upisan u taj redak, ali npr. `ENTITY` grupira field-ove i nema konkretnu vrijednost upisanu u sami redak.
 
-Cilj nam je schemu definiranu u kôdu prepisat u `item` tablicu u bazu. `CreateChilds` kreira field-ove sa istim informacijama koje ima [user](./src/schema/user.js) specifikacija.
+Kad to imamo u bazi onda sa `Items` querijem (u rekurzivnoj verziji) dohvatimo schemu i kreiramo GraphQL type od root-a [schema-graphql/types.js](./types.js). Ono što nam još fali je način za upis relacija između dva `item` -a.
 
-Kad to imamo u bazi onda sa `Items` querijem (u rekurzivnoj verziji) dohvatimo schemu i kreiramo GraphQL type od root-a [schema-graphql/query.js](./src/schema-graphql/query.js). Ono što nam još fali je način za upis relacija između dva `item` -a.
+### Primjer kreiranja dinamičke scheme sa tipom _user_
+
+Prvo se kreira root node `CreateRoot`, zatim user type sa nekoliko field-ova `CreateUserType`, onda mu se može dodat još koji field sa `AddNoteToUser` ili `AddCreatedToUser`.
+
+Sa definiranom schemom vrijede tipizirani queriji za user-a [user.md](./user.md).
+
+[http://localhost:9876/graphql?query=CreateRoot(...)](http://localhost:9876/graphql?query=mutation%20CreateRoot%20%7B%0A%20%20itemCreate(value%3A%20%7B%0A%20%20%20%20itype%3A%20%22ROOT%22%0A%20%20%20%20info%3A%20%22Root%20node%22%0A%20%20%7D)%20%7B%0A%20%20%20%20info%0A%20%20%20%20result%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A%0Amutation%20CreateUserType%20%7B%0A%20%20itemCreate(value%3A%20%7B%0A%20%20%20%20itemId%3A%201%0A%20%20%20%20itype%3A%20%22ENTITY%22%0A%20%20%20%20valString%3A%20%22user%22%0A%20%20%20%20info%3A%20%22user%20collection%22%0A%20%20%20%20items%3A%20%5B%7B%0A%20%20%20%20%20%20itype%3A%20%22NUMBER%22%0A%20%20%20%20%20%20valString%3A%20%22id%22%0A%20%20%20%20%20%20info%3A%20%22primary%20key%22%0A%20%20%20%20%7D%2C%20%7B%0A%20%20%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20%20%20valString%3A%20%22firstName%22%0A%20%20%20%20%20%20info%3A%20%22user%20first%20name%22%0A%20%20%20%20%7D%2C%20%7B%0A%20%20%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20%20%20valString%3A%20%22lastName%22%0A%20%20%20%20%20%20info%3A%20%22user%20last%20name%22%0A%20%20%20%20%7D%2C%20%7B%0A%20%20%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20%20%20valString%3A%20%22email%22%0A%20%20%20%20%20%20info%3A%20%22user%20email%22%0A%20%20%20%20%7D%5D%0A%20%20%20%20%23...%20itd.%20phone%2C%20address%2C%20note%2C%20color%0A%20%20%7D)%20%7B%0A%20%20%20%20info%0A%20%20%20%20result%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%20%20itype%0A%20%20%20%20%20%20valString%0A%20%20%20%20%20%20items%20%7B%0A%20%20%20%20%20%20%20%20id%0A%20%20%20%20%20%20%20%20itemId%0A%20%20%20%20%20%20%20%20itype%0A%20%20%20%20%20%20%20%20valString%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A%0Amutation%20AddNoteToUser%20%7B%0A%20%20itemCreate(value%3A%20%7B%0A%20%20%20%20itemId%3A%202%20%23%20user%20ENTITY%0A%20%20%20%20itype%3A%20%22STRING%22%0A%20%20%20%20valString%3A%20%22note%22%0A%20%20%20%20info%3A%20%22user%20note%22%0A%20%20%7D)%20%7B%0A%20%20%20%20result%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A%0Amutation%20AddCreatedToUser%20%7B%0A%20%20itemCreate(value%3A%20%7B%0A%20%20%20%20itemId%3A%202%20%23%20user%20ENTITY%0A%20%20%20%20itype%3A%20%22DATE%22%0A%20%20%20%20valString%3A%20%22created%22%0A%20%20%20%20info%3A%20%22user%20date%20created%22%0A%20%20%7D)%20%7B%0A%20%20%20%20result%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A%0Amutation%20UpdateUserType%20%7B%0A%20%20itemUpdate(value%3A%20%7B%0A%20%20%20%20itype%3A%20%22ENTITY%22%0A%20%20%20%20info%3A%20%22---%20user%20type%20---%22%0A%20%20%20%20%23valString%3A%20%22user%22%0A%20%20%7D%2C%20where%3A%20%22itype%3D%27ENTITY%27%20AND%20valString%3D%27user%27%22)%20%7B%0A%20%20%20%20info%0A%20%20%20%20result%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%20%20itemId%0A%20%20%20%20%20%20valString%0A%20%20%20%20%20%20info%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A%0Amutation%20DeleteItem%20%7B%0A%20%20itemDelete(where%3A%20%22id%20%3E%201%22)%20%7B%0A%20%20%20%20result%0A%20%20%20%20info%0A%20%20%7D%0A%7D%0A%0Aquery%20Items%20%7B%0A%20%20items%20%7B%0A%20%20%20%20id%0A%20%20%20%20itemId%0A%20%20%20%20itype%0A%20%20%20%20valString%0A%20%20%20%20info%0A%20%20%20%20items%20%7B%0A%20%20%20%20%20%20id%0A%20%20%20%20%20%20itype%0A%20%20%20%20%20%20valString%0A%20%20%20%20%20%20info%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D&operationName=DeleteItem)
+
+_Svaki query/mutacija se može okinut samo jedan po jedan. Na `CTRL+ENTER` gdje je kursor ili preko ▶ u headeru._
 
 ```graphql
 mutation CreateRoot {
-  createItem(value: {
+  itemCreate(value: {
     itype: "ROOT"
     info: "Root node"
   }) {
-    id
+    info
+    result {
+      id
+    }
   }
 }
 
-mutation CreateChilds {
-  createItem(value: {
+mutation CreateUserType {
+  itemCreate(value: {
     itemId: 1
     itype: "ENTITY"
     valString: "user"
     info: "user collection"
     items: [{
+      itype: "NUMBER"
+      valString: "id"
+      info: "primary key"
+    }, {
       itype: "STRING"
       valString: "firstName"
       info: "user first name"
@@ -90,7 +56,67 @@ mutation CreateChilds {
     }]
     #... itd. phone, address, note, color
   }) {
-    id
+    info
+    result {
+      id
+      itype
+      valString
+      items {
+        id
+        itemId
+        itype
+        valString
+      }
+    }
+  }
+}
+
+mutation AddNoteToUser {
+  itemCreate(value: {
+    itemId: 2 # user ENTITY
+    itype: "STRING"
+    valString: "note"
+    info: "user note"
+  }) {
+    result {
+      id
+    }
+  }
+}
+
+mutation AddCreatedToUser {
+  itemCreate(value: {
+    itemId: 2 # user ENTITY
+    itype: "DATE"
+    valString: "created"
+    info: "user date created"
+  }) {
+    result {
+      id
+    }
+  }
+}
+
+mutation UpdateUserType {
+  itemUpdate(value: {
+    itype: "ENTITY"
+    info: "--- user type ---"
+    #valString: "user"
+  }, where: "itype='ENTITY' AND valString='user'") {
+    info
+    result {
+      id
+      itemId
+      valString
+      info
+    }
+  }
+}
+
+mutation DeleteItem {
+  itemDelete(where: "id > 1") {
+    result
+    info
   }
 }
 
