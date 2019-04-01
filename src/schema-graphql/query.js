@@ -1,5 +1,6 @@
+import R from 'ramda'
 import { GraphQLInt, GraphQLString, GraphQLList } from 'graphql'
-import { gqlType, userType, orderType, orderItemType, orderStatusType, itemType } from './types'
+import { gqlType, itemType } from './types'
 import { resolveQuery } from './resolver'
 import { GraphQLAny } from './helpers'
 import config from '../config'
@@ -14,45 +15,37 @@ const queryArgs = {
   orderBy: { type: new GraphQLList(new GraphQLList(GraphQLString)) },
 }
 
-export default gqlType({
-  name: 'rootQuery',
-  description: 'GraphQL root type',
-  fields: {
-    items: {
-      type: new GraphQLList(itemType),
-      description: 'item collection',
-      args: queryArgs,
-      resolve: resolveQuery,
-    },
+export default function (types) {
 
-    users: {
-      type: new GraphQLList(userType),
-      description: 'user collection',
+  const typeCollection = (acc, [type, _]) => ({
+    ...acc,
+    [`${type.name}s`]: {
+      type: new GraphQLList(type),
+      description: type.description,
       args: queryArgs,
       resolve: resolveQuery,
-    },
-    orders: {
-      type: new GraphQLList(orderType),
-      description: 'order collection',
-      args: queryArgs,
-      resolve: resolveQuery,
-    },
-    orderItems: {
-      type: new GraphQLList(orderItemType),
-      description: 'order item collection',
-      args: queryArgs,
-      resolve: resolveQuery,
-    },
-    orderStatuses: {
-      type: new GraphQLList(orderStatusType),
-      description: 'order status collection',
-      args: queryArgs,
-      resolve: resolveQuery,
-    },
-    // App config
-    config: {
-      type: GraphQLAny,
-      resolve: () => config,
-    },
-  }
-})
+    }
+  })
+  const rootTypes = R.reduce(typeCollection, {}, types)
+
+  return gqlType({
+    name: 'rootQuery',
+    description: 'GraphQL root type',
+    fields: {
+
+      items: {
+        type: new GraphQLList(itemType),
+        description: 'item collection',
+        args: queryArgs,
+        resolve: resolveQuery,
+      },
+
+      ...rootTypes,
+
+      // App config
+      config: {
+        type: GraphQLAny,
+        resolve: () => config,
+      },
+    }
+})}

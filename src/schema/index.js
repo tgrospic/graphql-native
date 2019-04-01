@@ -60,6 +60,21 @@ export const EntitySchema = groupByEntity(Schema)
 *
 ****************************************************************/
 
+export const ItemEntity = {
+  type: ENTITY.ITEM,
+  fields: Item.fields,
+  description: 'this is Item type',
+  rels: {
+    items: () => ({
+      type: 'many',
+      entity: ItemEntity,
+      null: false,
+      delete: 'CASCADE',
+      description: 'item\'s children',
+    }),
+  },
+}
+
 export const UserEntity = {
   type: ENTITY.USER,
   fields: User.fields,

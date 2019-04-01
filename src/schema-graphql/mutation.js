@@ -1,83 +1,114 @@
-import { GraphQLInt, GraphQLString, GraphQLNonNull } from 'graphql'
-import { gqlType, gqlTypeInput, userType, userInputType, orderType, orderItemType, orderStatusType, itemType, itemInputType } from './types'
-import { createMutation, updateMutation, deleteMutation } from './resolver'
+import R from 'ramda'
+import { GraphQLInt, GraphQLList } from 'graphql'
+import { gqlType, itemType, itemInputType } from './types'
 import { GraphQLAny } from './helpers'
-import { ENTITY } from '../schema'
+import { dbTransact, insertItems, updateItem, deleteItem } from './database'
 import { logger } from '../lib'
 
-const typeAny = {
-  type: GraphQLAny,
-}
+const resultType = (name, innerType) =>
+  gqlType({
+    name: `${name}Result`,
+    fields: {
+      info: { type: GraphQLAny },
+      result: { type: innerType },
+    }
+  })
 
-const createEntityMutation = (type, inputType, entity, options) => ({
-  type,
-  args: { value: { type: inputType } },
-  resolve: createMutation(entity, options),
-})
-
-const updateEntityMutation = (gqlType, entity, options) => ({
-  type: gqlType,
-  args: {
-    value: typeAny,
-    where: typeAny,
+const itemCreate = ({
+  args: { value: { type: itemInputType } },
+  type: resultType('itemCreate', new GraphQLList(itemType)),
+  resolve: async function (rootValue, {value}, ctx, field) {
+    const items = i => [value]
+    return await dbTransact(insertItems, items)
   },
-  resolve: updateMutation(entity, options),
+  description: `create items`,
 })
 
-const deleteEntityMutation = (gqlType, entity, options) => ({
-  type: gqlType,
+const itemUpdate = ({
   args: {
-    where: typeAny,
+    value: { type: itemInputType },
+    where: { type: GraphQLAny },
   },
-  resolve: deleteMutation(entity, options),
+  type: resultType('itemUpdate', itemType),
+  resolve: async function (rootValue, {value, where}, ctx, field) {
+    return await dbTransact(updateItem, value, where)
+  },
+  description: `update items`,
 })
 
-export default gqlType({
-  name: 'rootMutation',
-  fields: {
-    // Sample mutation method
-    mutationSample: {
-      // Function parameters
+const itemDelete = ({
+  args: {
+    where: { type: GraphQLAny },
+  },
+  type: resultType('itemDelete', GraphQLInt),
+  resolve: async function (rootValue, {where}, ctx, field) {
+    return await dbTransact(deleteItem, where)
+  },
+  description: `delete items`,
+})
+
+export default function (types) {
+  // Update definition
+  const create = (acc, [type, inType]) => ({
+    ...acc,
+    [`${type.name}Create`]: {
       args: {
-        // sampleInputType
-        inputNumber: { type: new GraphQLNonNull(GraphQLInt) },
-        inputString: { type: GraphQLString },
+        value: { type: inType }
       },
-      // Function return type
-      type: gqlType({
-        name:  `sampleReturnType`,
-        fields: () => ({
-          returnNumber: { type: GraphQLInt },
-          returnString: { type: GraphQLString },
-        }),
-      }),
-      // mutationSample : sampleInputType -> sampleReturnType
-      resolve: (root, {inputNumber, inputString}) => {
-        logger.debug(`mutationSample.resolve: `, {inputNumber, inputString})
-        return {
-          returnNumber: inputNumber + 100,
-          returnString: `Echo -> ${inputString}!`
-        }
+      type,
+      resolve: (rootValue, {value}, ctx, field) => {
+        logger.debug('CREATE', type.name, value)
+        return value
       },
+    }
+  })
+  const createTypes = R.reduce(create, {}, types)
+
+  // Create definition
+  const update = (acc, [type, inType]) => ({
+    ...acc,
+    [`${type.name}Update`]: {
+      args: {
+        value: { type: inType },
+        where: { type: GraphQLAny },
+      },
+      type,
+      resolve: (rootValue, {value, where}, ctx, field) => {
+        logger.debug('UPDATE', type.name, value, where)
+        return value
+      },
+    }
+  })
+  const updateTypes = R.reduce(update, {}, types)
+
+  // Delete definition
+  const deletee = (acc, [type, inType]) => ({
+    ...acc,
+    [`${type.name}Delete`]: {
+      args: {
+        where: { type: GraphQLAny },
+      },
+      type: GraphQLInt,
+      resolve: (rootValue, {where}, ctx, field) => {
+        logger.debug('DELETE', type.name, where)
+        return 42
+      },
+    }
+  })
+  const deleteTypes = R.reduce(deletee, {}, types)
+
+  return gqlType({
+    name: 'rootMutation',
+    fields: {
+      // Item mutations
+      itemCreate,
+      itemUpdate,
+      itemDelete,
+
+      // Dynamic mutations
+      ...createTypes,
+      ...updateTypes,
+      ...deleteTypes,
     },
-
-    // Create item
-    createItem: createEntityMutation(itemType, itemInputType, ENTITY.ITEM, { include: 'items' }),
-
-    // create
-    createUser: createEntityMutation(userType, userInputType, ENTITY.USER, { include: 'orders' }),
-    createOrder: createEntityMutation(orderType, GraphQLAny, ENTITY.ORDER, { include: ['user', 'orderItems', 'statuses'] }),
-    createOrderItem: createEntityMutation(orderItemType, GraphQLAny, ENTITY.ORDER_ITEM, { include: 'order' }),
-    createOrderStatus: createEntityMutation(orderStatusType, GraphQLAny, ENTITY.ORDER_STATUS, { include: 'order' }),
-    // update
-    updateUser: updateEntityMutation(GraphQLInt, ENTITY.USER),
-    updateOrder: updateEntityMutation(GraphQLInt, ENTITY.ORDER),
-    updateOrderItem: updateEntityMutation(GraphQLInt, ENTITY.ORDER_ITEM),
-    updateOrderStatus: updateEntityMutation(GraphQLInt, ENTITY.ORDER_STATUS),
-    // delete
-    deleteUser: deleteEntityMutation(GraphQLInt, ENTITY.USER),
-    deleteOrder: deleteEntityMutation(GraphQLInt, ENTITY.ORDER),
-    deleteOrderItem: deleteEntityMutation(GraphQLInt, ENTITY.ORDER_ITEM),
-    deleteOrderStatus: deleteEntityMutation(GraphQLInt, ENTITY.ORDER_STATUS),
-  },
-})
+  })
+}
