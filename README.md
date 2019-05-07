@@ -14,13 +14,19 @@ https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows
 
 ### nvm
 
-```sh
-# linux - install zadnje verzije nodejs-a
-nvm install stable
+Napomena: **nodejs v12 ne želi startat GraphQL server**.
 
-# windows - install zadnje verzije (mora bit navedena)
+```sh
+# Instalira nodejs verziju v11.x.x
 nvm install 11
+
+# Postavlja default v11:
+# - globalno (Windows)
+# - session (Linux)
 nvm use 11
+
+# Globalni default (samo Linux)
+nvm alias default 11
 ```
 
 ## Start GraphQL server
