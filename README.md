@@ -15,15 +15,24 @@ https://github.com/coreybutler/nvm-windows#node-version-manager-nvm-for-windows
 ### nvm
 
 ```sh
-# Instalira nodejs verziju v12.x.x
+# Install nodejs v12.x.x
+nvm install 12
+
+# Set default v12:
+# - global (Windows)
+# - session (Linux)
 nvm use 12
 
-# Postavlja default v12:
-# - globalno (Windows)
-# - session (Linux)
-
-# Globalni default (samo Linux)
+# Global default (only Linux)
 nvm alias default 12
+
+# Install dependencies needed for native compile (sqlite, nodegyp)
+
+# Linux
+sudo apt-get install python build-essential
+
+# Windows
+npm install -g --production windows-build-tools
 ```
 
 ## Start GraphQL server
