@@ -1,6 +1,6 @@
 {
   "name": "graphql-native",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "author": "Tomislav Grospic",
   "description": "GraphQL native",
@@ -16,17 +16,17 @@
     "express-graphql": "^0.7.1",
     "graphql": "^14.3.0",
     "graphql-iso-date": "^3.6.1",
-    "log4js": "^4.2.0",
-    "nodemon": "^1.19.0",
+    "log4js": "^6.4.1",
     "ramda": "^0.26.1",
-    "sqlite": "^3.0.3"
+    "sqlite": "^4.0.23",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.4",
     "@babel/node": "^7.2.2",
     "@babel/preset-env": "^7.4.4",
-    "npm-check": "^5.9.0",
+    "nodemon": "^2.0.15",
     "rimraf": "^2.6.3"
   },
   "nodemonConfig": {

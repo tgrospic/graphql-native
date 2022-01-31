@@ -1,14 +1,18 @@
 import R from 'ramda'
-import sqlite from 'sqlite'
+import sqlite3 from 'sqlite3'
+import * as sqlite from 'sqlite'
 import config from '../config'
 import { ItemEntity } from '../schema'
 import { logger, mkDir } from '../lib'
 
-
 // Ensure db folder
 mkDir(config.db.storage)
 
-const dbPromise = sqlite.open(config.db.storage, { Promise, cached: true })
+// Open/create database
+const dbPromise = sqlite.open({
+  filename: config.db.storage,
+  driver: sqlite3.cached.Database
+})
 
 export const dbExec = async (dbOp, ...args) => {
   const db = await dbPromise
