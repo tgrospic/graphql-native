@@ -1,8 +1,8 @@
-# GraphQL - uputa za upotrebu (promiješati prije ...:)
+# GraphQL - quick introduction
 
 ## Getting started
 
-Opis kompletnog GraphQL servera. Definiranje sheme (type/query/mutation) i resolver-a.
+Description of complete GraphQL server. Schema definition (type/query/mutation) and resolvers.
 
 https://www.howtographql.com/graphql-js/1-getting-started/
 
@@ -10,17 +10,17 @@ https://www.howtographql.com/graphql-js/1-getting-started/
 
 `BaseType ::= String | Int | Float | Boolean | ID`
 
-Pregled baznih tipova.  
+Overview of base types.  
 https://graphql.org/graphql-js/basic-types/
 
 ## **Object** types
 
 `ObjectType ::= { String ":" (BaseType | ObjectType) }`
 
-Pregled kako se kreiraju objekt (kompleksni) tipovi koji grupiraju više baznih ili samih objekt tipova.  
+More about _complex_ objects which groups more base or object types.  
 https://graphql.org/graphql-js/object-types/
 
-Primjer: definicija `User` objekta u GraphQL query jeziku.
+Example: definition of `User` object in GraphQL query language.
 
 ```livescript
 type User {           # `User` je objektni tip
@@ -30,19 +30,18 @@ type User {           # `User` je objektni tip
 }
 ```
 
-## **Schema** i malo više o GQL query jeziku
+## **Schema** and more about GraphQL
 
 https://graphql.org/learn/schema/
 
-## **GraphQL API specifikacija** sa definicijama u GQL i primjerima korištenja u JS-u
+## **GraphQL API specification** with definitions in GQL and examples in JS
 
-Ovo je nama bitno jer ovaj API koristimo za komunikaciju s GraphQL-om.
-
+This is of our interest here for use in communication with GraphQL.  
 https://graphql.github.io/graphql-js/type/
 
-## Definicija tip-a na tri načina
+## Two ways of defining a type in GQL
 
-GQL jezik
+GQL language
 
 ```livescript
 type Person {
@@ -51,7 +50,7 @@ type Person {
 }
 ```
 
-Pomoću GQL JS API-ja (u to se prevodi GQL jezik)
+GQL JS API (this is where GQL language is translated)
 
 ```js
 const PersonType = new GraphQLObjectType({
@@ -63,7 +62,10 @@ const PersonType = new GraphQLObjectType({
 })
 ```
 
-Definirano sa našim `Item` objektom (retkom)
+## Dynamic way to generate GQL schema (types)
+
+The schema is stored in SQLite in one generic table `items` and represented
+in JS as `Item` object.
 
 ```js
 {
@@ -74,7 +76,7 @@ Definirano sa našim `Item` objektom (retkom)
     valString: "firstName",
   }, {
     itype: "Person",
-    valString: "bestFriend", // ovo još ne možemo napravit jer nemamo linkova
+    valString: "bestFriend", // for this links should be added
   },
 }
 ```
