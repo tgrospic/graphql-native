@@ -40,6 +40,7 @@ export async function resolveQuery(rootValue, {where, limit, skip, orderBy}, con
 
   // logger.debug('QUERY', JSON.stringify(queryModel, null, 2))
 
+  // TODO: create a query from types metadata (now returns all items)
   const items = await dbExec(loadItems)
 
   return items

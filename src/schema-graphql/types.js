@@ -76,6 +76,7 @@ export const itemInputDef = typeDef(ENTITY.ITEM, 'this is Item type', fields => 
 }))
 export const itemInputType = gqlTypeInput(itemInputDef)
 
+// Loads GraphQL schema (types) for SQLite `items` table
 export async function loadDynamicTypes() {
   // Flat items collection
   const items = await dbExec(loadItems)

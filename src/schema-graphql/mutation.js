@@ -88,10 +88,10 @@ export default function (types) {
       args: {
         where: { type: GraphQLAny },
       },
-      type: GraphQLInt,
+      type: GraphQLAny,
       resolve: (rootValue, {where}, ctx, field) => {
         logger.debug('DELETE', type.name, where)
-        return 42
+        return "Not implemented"
       },
     }
   })
